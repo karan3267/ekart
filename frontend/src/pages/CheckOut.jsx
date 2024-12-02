@@ -1,125 +1,176 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setCustomer } from "../redux/paymentSlice";
-import { setIsPaymentGatewayOpen } from "../redux/utils";
+import { setIsPaymentGatewayOpenTrue } from "../redux/utils";
+import "../styles/checkout.css"; // Add a CSS file for custom styles
 
 const CheckOut = () => {
   const products = useSelector((state) => state.payment.products);
+  const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
+    name: user?.name || "",
+    email: user?.email || "",
     address: "",
   });
-  const [gateway, setGateway] = useState("custom"); // Default to custom gateway
+  const [gateway, setGateway] = useState("custom");
+  const [errors, setErrors] = useState({});
 
-  if (!products || products.length === 0) {
-    return <div className="p-6">No products in the cart. Go back and add some products.</div>;
-  }
+  useEffect(() => {
+    if (!products || products.length === 0) {
+      navigate("/cart");
+    }
+  }, [products, navigate]);
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name) newErrors.name = "Name is required";
+    if (!formData.email) newErrors.email = "Email is required";
+    if (!formData.address) newErrors.address = "Address is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    setErrors({ ...errors, [name]: "" }); // Clear error on input change
   };
 
   const handleProceedToPayment = () => {
-    if (!formData.name || !formData.email || !formData.address) {
-      alert("Please fill in all fields.");
-      return;
-    }
+    if (!validateForm()) return;
+
     dispatch(setCustomer(formData));
-    dispatch(setIsPaymentGatewayOpen());
-    // Navigate to the selected payment gateway
+    dispatch(setIsPaymentGatewayOpenTrue());
+
     if (gateway === "custom") {
       navigate("/custom-payment", { state: { products, customer: formData } });
     } else if (gateway === "stripe") {
-      navigate("/payment"); // Example: Stripe integration page
+      navigate("/payment");
     } else if (gateway === "razorpay") {
-      navigate("/razorpay-payment"); // Example: Razorpay integration page
+      navigate("/razorpay-payment");
     }
   };
 
-  const totalPrice = products.reduce((total, product) => total + product.totalPrice, 0);
+  const totalPrice = products.reduce(
+    (total, product) => total + product.price * product.quantity,
+    0
+  );
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Checkout</h1>
-
-      {/* Products Table */}
-      <div className="mb-6">
-        <h2 className="text-lg font-bold">Order Summary</h2>
-        <table className="w-full border-collapse border border-gray-300">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="border border-gray-300 px-4 py-2">Product</th>
-              <th className="border border-gray-300 px-4 py-2">Quantity</th>
-              <th className="border border-gray-300 px-4 py-2">Price</th>
-            </tr>
-          </thead>
-          <tbody>
+    <div className="checkout-page">
+      <h1 className="text-3xl font-bold text-center mb-6">Checkout</h1>
+      <div className="checkout-grid">
+        {/* Order Summary */}
+        <div className="order-summary">
+          <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+          <p className="text-lg font-bold mt-4">Total: ${totalPrice}</p>
+          <div className="order-items">
             {products.map((product) => (
-              <tr key={product.id}>
-                <td className="border border-gray-300 px-4 py-2">{product.name}</td>
-                <td className="border border-gray-300 px-4 py-2">{product.quantity}</td>
-                <td className="border border-gray-300 px-4 py-2">${product.totalPrice.toFixed(2)}</td>
-              </tr>
+              <div
+                key={product._id}
+                className="flex items-center gap-4 border-b py-4"
+              >
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-16 h-16 object-cover rounded"
+                />
+                <div>
+                  <h3 className="text-lg font-semibold">{product.name}</h3>
+                  <p className="text-sm text-gray-600">
+                    Quantity: {product.quantity}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Price: ${product.price}
+                  </p>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
-        <p className="text-lg font-bold mt-4">Total: ${totalPrice.toFixed(2)}</p>
-      </div>
+          </div>
+        </div>
 
-      {/* Shipping Information */}
-      <div className="mb-6">
-        <h2 className="text-lg font-bold">Shipping Information</h2>
-        <input
-          type="text"
-          name="name"
-          placeholder="Name"
-          value={formData.name}
-          onChange={handleInputChange}
-          className="p-2 border rounded w-full mb-2"
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleInputChange}
-          className="p-2 border rounded w-full mb-2"
-        />
-        <textarea
-          name="address"
-          placeholder="Address"
-          value={formData.address}
-          onChange={handleInputChange}
-          className="p-2 border rounded w-full"
-        />
-      </div>
+        {/* Shipping Information */}
+        <div className="checkout-details">
+          <h2 className="text-xl font-bold mb-4">Shipping Information</h2>
+          <div className="form-group">
+            <input
+              type="text"
+              name="name"
+              placeholder="Full Name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className={`input ${errors.name ? "input-error" : ""}`}
+            />
+            {errors.name && <p className="error-text">{errors.name}</p>}
+          </div>
+          <div className="form-group">
+            <input
+              type="email"
+              name="email"
+              placeholder="Email Address"
+              value={formData.email}
+              onChange={handleInputChange}
+              className={`input ${errors.email ? "input-error" : ""}`}
+            />
+            {errors.email && <p className="error-text">{errors.email}</p>}
+          </div>
+          <div className="form-group">
+            <textarea
+              name="address"
+              placeholder="Shipping Address"
+              value={formData.address}
+              onChange={handleInputChange}
+              className={`input ${errors.address ? "input-error" : ""}`}
+            />
+            {errors.address && <p className="error-text">{errors.address}</p>}
+          </div>
 
-      {/* Payment Gateway Selection */}
-      <div className="mb-6">
-        <h2 className="text-lg font-bold">Select Payment Gateway</h2>
-        <select
-          value={gateway}
-          onChange={(e) => setGateway(e.target.value)}
-          className="p-2 border rounded w-full"
-        >
-          <option value="custom">Custom Gateway</option>
-          <option value="stripe">Stripe</option>
-          <option value="razorpay">Razorpay</option>
-        </select>
-      </div>
+          {/* Payment Gateway Selection */}
+          <h2 className="text-xl font-bold mb-4">Payment Method</h2>
+          <div className="payment-options">
+            <label className="gateway-option">
+              <input
+                type="radio"
+                name="gateway"
+                value="custom"
+                checked={gateway === "custom"}
+                onChange={(e) => setGateway(e.target.value)}
+              />
+              Custom Gateway
+            </label>
+            <label className="gateway-option">
+              <input
+                type="radio"
+                name="gateway"
+                value="stripe"
+                onChange={(e) => setGateway(e.target.value)}
+              />
+              Stripe
+            </label>
+            <label className="gateway-option">
+              <input
+                type="radio"
+                name="gateway"
+                value="razorpay"
+                onChange={(e) => setGateway(e.target.value)}
+              />
+              Razorpay
+            </label>
+          </div>
 
-      {/* Proceed Button */}
-      <button
-        onClick={handleProceedToPayment}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
-        Proceed to Payment
-      </button>
+          {/* Proceed Button */}
+          <button
+            onClick={handleProceedToPayment}
+            className="btn-primary w-full mt-4"
+          >
+            Proceed to Payment
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

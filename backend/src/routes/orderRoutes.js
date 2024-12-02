@@ -6,16 +6,15 @@ const router = express.Router();
 // Create a new order
 router.post("/", verifyToken, async (req, res) => {
   const { items, shippingAddress, totalAmount, paymentMethod, paymentStatus } = req.body;
-
   try {
     // Create the order
     const order = new Order({
-      userId: req.user.id,
-      items,
-      shippingAddress,
-      totalAmount,
-      paymentMethod,
-      paymentStatus,
+      user: req.user.id,
+      orderItems:items,
+      shippingAddress:shippingAddress,
+      totalAmount:totalAmount,
+      paymentMethod:paymentMethod,
+      paymentStatus:paymentStatus,
     });
 
     await order.save();
@@ -29,7 +28,7 @@ router.post("/", verifyToken, async (req, res) => {
 // Get user's orders
 router.get("/", verifyToken, async (req, res) => {
   try {
-    const orders = await Order.find({ userId: req.user.id }).populate("items.productId");
+    const orders = await Order.find({ user: req.user.id });
     res.status(200).json(orders);
   } catch (error) {
     console.error("Error fetching orders:", error);

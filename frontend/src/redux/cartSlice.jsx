@@ -1,51 +1,167 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
-const initialState = {
-  items: [], // Array to store cart items
-  totalQuantity: 0, // Total number of items
-  totalPrice: 0, // Total cost of items
-};
+export const fetchCart = createAsyncThunk(
+  "cart/fetchCart",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/cart/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Include token in the Authorization header
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+// Add item to the cart
+export const addToCart = createAsyncThunk(
+  "cart/addToCart",
+  async (cartItem, { rejectWithValue }) => {
+    const token=localStorage.getItem("token");
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/cart/",
+        cartItem,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include token in the Authorization header
+          },
+        }
+      );
+      return response.data; // Return updated cart data
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+// Remove item from the cart
+export const removeFromCart = createAsyncThunk(
+  "cart/removeFromCart",
+  async (product, { rejectWithValue }) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.delete(
+        `http://localhost:5000/api/cart/${product._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include token in the Authorization header
+          },
+        }
+      );
+      console.log(response.data)
+      return response.data; // Return updated cart data
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+
+// Clear cart
+export const clearCart = createAsyncThunk(
+  "cart/clearCart",
+  async (userId, { rejectWithValue }) => {
+    const token=localStorage.getItem("token");
+
+    try {
+      const response = await axios.delete(
+        `http://localhost:5000/api/cart/clear/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 
 const cartSlice = createSlice({
   name: "cart",
-  initialState,
+  initialState: {
+    items: [],
+    totalPrice: 0,
+    loading: false,
+    error: null,
+  },
   reducers: {
-    addToCart(state, action) {
-      const product = action.payload;
-      const existingItem = state.items.find((item) => item.id === product.id);
-      if (existingItem) {
-        existingItem.quantity += 1;
-        existingItem.totalPrice += product.price;
-      } else {
-        state.items.push({
-          ...product,
-          quantity: 1,
-          totalPrice: product.price,
-        });
-      }
-
-      state.totalQuantity += 1;
-      state.totalPrice += product.price;
+    // This reducer can be used for local manipulation if necessary
+    updateTotalPrice: (state) => {
+      state.totalPrice = state.items.reduce(
+        (total, item) => total + item.price * item.quantity,
+        0
+      );
     },
-    removeFromCart(state, action) {
-      const productId = action.payload;
-      const existingItem = state.items.find((item) => item.id === productId);
-
-      if (existingItem) {
-        state.totalQuantity -= existingItem.quantity;
-        state.totalPrice -= existingItem.totalPrice;
-
-        state.items = state.items.filter((item) => item.id !== productId);
-      }
-    },
-    clearCart(state) {
-      state.items = [];
-      state.totalQuantity = 0;
-      state.totalPrice = 0;
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch Cart
+      .addCase(fetchCart.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchCart.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload.items;
+        state.totalPrice = action.payload.totalPrice;
+      })
+      .addCase(fetchCart.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Add Item to Cart
+      .addCase(addToCart.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addToCart.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload.items;
+        state.totalPrice = action.payload.totalPrice;
+      })
+      .addCase(addToCart.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Remove Item from Cart
+      .addCase(removeFromCart.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removeFromCart.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload.items;
+        state.totalPrice = action.payload.totalPrice;
+      })
+      .addCase(removeFromCart.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Clear Cart
+      .addCase(clearCart.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(clearCart.fulfilled, (state) => {
+        state.loading = false;
+        state.items = [];
+        state.totalPrice = 0;
+      })
+      .addCase(clearCart.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
-export const { addToCart, removeFromCart, clearCart } = cartSlice.actions;
+export const { updateTotalPrice } = cartSlice.actions;
 
 export default cartSlice.reducer;

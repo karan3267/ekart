@@ -41,7 +41,7 @@ const products = [
         brand: "Samsung",
         price: 799,
         stock: 50,
-        images: ["https://images.unsplash.com/photo-1580870069867-74c57ee1bb07?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","https://m.media-amazon.com/images/I/81HPWFk9kvL._AC_SL1433_.jpg","https://m.media-amazon.com/images/I/71rIC5+Dj1S._AC_SL1498_.jpg","https://m.media-amazon.com/images/I/71cezhupv4L._AC_SL1498_.jpg"],
+        images: ["https://m.media-amazon.com/images/I/81HPWFk9kvL._AC_SL1433_.jpg","https://m.media-amazon.com/images/I/71rIC5+Dj1S._AC_SL1498_.jpg","https://m.media-amazon.com/images/I/71cezhupv4L._AC_SL1498_.jpg"],
         ratings: { average: 4.5, count: 120 },
         isFeatured: true,
       },

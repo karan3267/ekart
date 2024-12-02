@@ -1,44 +1,120 @@
-import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { products } from "../assets/data";
-import { setProduct } from "../redux/paymentSlice";
+import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useMemo, useState } from "react";
 import { addToCart } from "../redux/cartSlice";
+import { fetchProduct } from "../redux/productSlice";
+import { fetchCategories } from "../redux/categorySlice";
 
 const ProductPage = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const product = products.find((prod) => prod.id === id);
+  const navigate = useNavigate();
+
+  const products = useSelector((state) => state.products);
+  const product = products.product;
+  const categories = useSelector((state) => state.category);
+  const [src,setSrc]=useState(product.images[currentImageIndex]);
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    dispatch(fetchProduct(id));
+    dispatch(fetchCategories());
+  }, [dispatch, id]);
+
+  const categoryName = useMemo(() => {
+    const category = categories.category.find(
+      (cat) => cat._id === product?.category
+    );
+    return category ? category.name : "Unknown Category";
+  }, [categories.category, product]);
 
   if (!product) {
     return <div className="p-6">Product not found.</div>;
   }
 
-  const handleAddToCart=()=>{
-    dispatch(addToCart(product));
+  const handleAddToCart = () => {
+    if (localStorage.getItem("token")) {
+      dispatch(addToCart(product));
+    } else {
+      navigate("/login");
+    }
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex(
+      (prevIndex) => (prevIndex + 1) % product.images.length
+    );
+  };
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex(
+      (prevIndex) =>
+        (prevIndex - 1 + product.images.length) % product.images.length
+    );
+  };
+  const handleError=()=>{
+     setSrc("default_product.png");
   }
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col md:flex-row">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full md:w-1/2 h-96 object-cover"
-        />
-        <div className="md:ml-6">
-          <h1 className="text-3xl font-bold">{product.name}</h1>
-          <p className="text-gray-500">{product.category}</p>
-          <p className="text-xl font-bold mt-2">${product.price}</p>
-          <p className="mt-4">{product.description}</p>
+    <div className="p-6 flex flex-col md:flex-row gap-8">
+      {/* Product Images */}
+      <div className="w-full md:w-1/2">
+        <div className="relative border rounded-lg shadow-md bg-white">
+          <img
+            src={src}
+            alt={product.name}
+            className="w-full h-96 object-contain p-4"
+            loading="lazy"
+            onError={handleError}
+          />
           <button
-            onClick={handleAddToCart}
-            className="mt-6 bg-blue-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            onClick={handlePrevImage}
+            className="absolute top-1/2 left-2 transform -translate-y-1/2 text-gray-600 bg-white p-2 rounded-full shadow hover:bg-gray-200"
           >
-            Add to cart
+            &lt;
+          </button>
+          <button
+            onClick={handleNextImage}
+            className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-600 bg-white p-2 rounded-full shadow hover:bg-gray-200"
+          >
+            &gt;
           </button>
         </div>
+
+        {/* Thumbnail Previews */}
+        <div className="flex gap-2 mt-4 overflow-x-auto">
+          {product.images.map((image, index) => (
+            <img
+              key={index}
+              src={image}
+              alt={`Thumbnail ${index}`}
+              onClick={() => setCurrentImageIndex(index)}
+              className={`w-20 h-20 object-cover rounded-lg cursor-pointer border ${
+                currentImageIndex === index
+                  ? "border-blue-500"
+                  : "border-gray-300"
+              }`}
+              loading="lazy"
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Product Details */}
+      <div className="w-full md:w-1/2">
+        <h1 className="text-3xl font-bold text-gray-800">{product.name}</h1>
+        <p className="text-sm text-gray-500 mt-1">Category: {categoryName}</p>
+        <p className="text-xl font-bold text-green-600 mt-4">${product.price}</p>
+        <p className="mt-4 text-gray-700">{product.description}</p>
+        <p className="mt-2 text-gray-600">Ratings: {product.ratings.average}</p>
+        <button
+          onClick={handleAddToCart}
+          className="mt-6 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+        >
+          Add to Cart
+        </button>
       </div>
     </div>
   );
