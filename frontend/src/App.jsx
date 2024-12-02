@@ -6,7 +6,7 @@ import {
   Outlet,
 } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import Sidebar from "./components/Sidebar";
+import Sidebar from "./components/SideBar";
 import Header from "./components/Header";
 import Products from "./pages/Products";
 import Orders from "./pages/Orders";
