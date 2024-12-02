@@ -6,7 +6,7 @@ export const fetchCart = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/cart/${userId}`,
+        `https://ekartback-e2jq.onrender.com/api/cart/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`, // Include token in the Authorization header
@@ -27,7 +27,7 @@ export const addToCart = createAsyncThunk(
     const token=localStorage.getItem("token");
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/cart/",
+        "https://ekartback-e2jq.onrender.com/api/cart/",
         cartItem,
         {
           headers: {
@@ -49,7 +49,7 @@ export const removeFromCart = createAsyncThunk(
     const token = localStorage.getItem("token");
     try {
       const response = await axios.delete(
-        `http://localhost:5000/api/cart/${product._id}`,
+        `https://ekartback-e2jq.onrender.com/api/cart/${product._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`, // Include token in the Authorization header
@@ -73,7 +73,7 @@ export const clearCart = createAsyncThunk(
 
     try {
       const response = await axios.delete(
-        `http://localhost:5000/api/cart/clear/${userId}`,
+        `https://ekartback-e2jq.onrender.com/api/cart/clear/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

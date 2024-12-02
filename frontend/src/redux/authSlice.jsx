@@ -14,7 +14,7 @@ export const registerUser = createAsyncThunk(
   "auth/register",
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/register", userData);
+      const response = await axios.post("https://ekartback-e2jq.onrender.com/api/auth/register", userData);
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
       return response.data;
@@ -29,7 +29,7 @@ export const loginUser = createAsyncThunk(
   "auth/login",
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/login", userData);
+      const response = await axios.post("https://ekartback-e2jq.onrender.com/api/auth/login", userData);
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
       return response.data;

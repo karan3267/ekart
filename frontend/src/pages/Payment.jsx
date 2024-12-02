@@ -16,7 +16,7 @@ const Payment = () => {
     const stripe = await stripePromise;
 
     const response = await fetch(
-      "http://localhost:5000/api/payment/create-checkout-session",
+      "https://ekartback-e2jq.onrender.com/api/payment/create-checkout-session",
       {
         method: "POST",
         headers: {

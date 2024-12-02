@@ -10,7 +10,7 @@ export const placeOrder = createAsyncThunk(
       throw new Error("No Authorization token found")
     }
     try {
-      const response = await axios.post("http://localhost:5000/api/orders", orderData,
+      const response = await axios.post("https://ekartback-e2jq.onrender.com/api/orders", orderData,
         {
           headers:{
             Authorization:`Bearer ${token}`
@@ -29,7 +29,7 @@ export const fetchOrders=createAsyncThunk("orders/getOrders",async()=>{
   if(!token){
     throw new Error("Autorization token not found")
   }
-  const response=await axios.get("http://localhost:5000/api/orders",
+  const response=await axios.get("https://ekartback-e2jq.onrender.com/api/orders",
     {headers:{Authorization:`Bearer ${token}`}}
   );
   return response.data

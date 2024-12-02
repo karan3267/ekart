@@ -5,7 +5,7 @@ import axios from "axios";
 export const fetchProducts = createAsyncThunk(
   "products/fetchProducts",
   async () => {
-    const response = await axios.get("http://localhost:5000/api/products");
+    const response = await axios.get("https://ekartback-e2jq.onrender.com/api/products");
     return response.data;
   }
 );
@@ -13,7 +13,7 @@ export const fetchProduct = createAsyncThunk(
   "products/fetchProduct",
   async (id) => {
     const response = await axios.get(
-      `http://localhost:5000/api/products/${id}`
+      `https://ekartback-e2jq.onrender.com/api/products/${id}`
     );
     return response.data;
   }
