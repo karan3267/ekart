@@ -20,34 +20,40 @@ import PaymentPage from "./pages/paymentPage";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import PrivateRoute from "./components/PrivateRoutes";
-import Test from "./pages/test"
+import Test from "./pages/test";
 import "./App.css";
 import Home from "./pages/Home";
 import { useEffect } from "react";
 import { tokenExpired } from "./redux/utils";
+import Loader from "./components/Loader";
 
 const AppRoutes = () => {
   const utils = useSelector((state) => state.utils);
   const { token } = useSelector((state) => state.auth);
-  const dipatch=useDispatch();
-  useEffect(()=>{
-    dipatch(tokenExpired());
-  },[dipatch])
+  const loading = useSelector((state) => state.loading.isLoading);
 
+  const dipatch = useDispatch();
+  useEffect(() => {
+    dipatch(tokenExpired());
+  }, [dipatch]);
   return (
     <Router>
       <div>
+        {/* {loading && (
+          <div className="fixed bg-gray-600 bg-opacity-60 top-0 left-0 right-0 bottom-0 flex justify-center items-center z-10">
+            {<Loader />}
+          </div>
+        )} */}
         {token && !utils.isTokenExpired ? (
           <div>
             <div className="flex-grow-0">
-              
               <Routes>
                 {/* Layout with Sidebar and Header */}
-                <Route path="/test" element={<Test/>}/>
+                <Route path="/test" element={<Test />} />
                 <Route path="/" element={<Layout />}>
                   {/* Public Routes */}
                   <Route index element={<Home />} />
-                  <Route path="*" element={<Navigate to="/"/>} />
+                  <Route path="*" element={<Navigate to="/" />} />
                   <Route path="products" element={<Products />} />
                   <Route path="product/:id" element={<ProductPage />} />
 
@@ -103,7 +109,7 @@ const AppRoutes = () => {
 };
 
 const Layout = () => {
-  const utils=useSelector(state=>(state.utils));
+  const utils = useSelector((state) => state.utils);
   return (
     <div>
       {!utils.ispaymentGatewayOpen && utils.isSideBarOpen && (

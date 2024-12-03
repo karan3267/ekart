@@ -6,6 +6,7 @@ import authReducer from './authSlice.jsx'
 import orderReducer from './orderSlice.jsx'
 import productReducer from './productSlice.jsx'
 import categoryReducer from './categorySlice.jsx'
+import loadingReducer from './loadingSlice.jsx'
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
     auth:authReducer,
     order:orderReducer,
     products:productReducer,
-    category:categoryReducer
+    category:categoryReducer,
+    loading:loadingReducer
   },
 });

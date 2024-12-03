@@ -1,10 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { setLoader } from "./loadingSlice";
 
 export const fetchCart = createAsyncThunk(
   "cart/fetchCart",
-  async (userId, { rejectWithValue }) => {
+  async (userId, { rejectWithValue, dispatch }) => {
     try {
+      dispatch(setLoader(true));
       const response = await axios.get(
         `https://ekartback-e2jq.onrender.com/api/cart/${userId}`,
         {
@@ -16,6 +18,8 @@ export const fetchCart = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
+    } finally {
+      dispatch(setLoader(false));
     }
   }
 );
@@ -23,9 +27,10 @@ export const fetchCart = createAsyncThunk(
 // Add item to the cart
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
-  async (cartItem, { rejectWithValue }) => {
-    const token=localStorage.getItem("token");
+  async (cartItem, { rejectWithValue, dispatch }) => {
+    const token = localStorage.getItem("token");
     try {
+      dispatch(setLoader(true));
       const response = await axios.post(
         "https://ekartback-e2jq.onrender.com/api/cart/",
         cartItem,
@@ -38,6 +43,8 @@ export const addToCart = createAsyncThunk(
       return response.data; // Return updated cart data
     } catch (error) {
       return rejectWithValue(error.response.data);
+    } finally {
+      dispatch(setLoader(false));
     }
   }
 );
@@ -45,9 +52,10 @@ export const addToCart = createAsyncThunk(
 // Remove item from the cart
 export const removeFromCart = createAsyncThunk(
   "cart/removeFromCart",
-  async (product, { rejectWithValue }) => {
+  async (product, { rejectWithValue, dispatch }) => {
     const token = localStorage.getItem("token");
     try {
+      dispatch(setLoader(true));
       const response = await axios.delete(
         `https://ekartback-e2jq.onrender.com/api/cart/${product._id}`,
         {
@@ -56,22 +64,24 @@ export const removeFromCart = createAsyncThunk(
           },
         }
       );
-      console.log(response.data)
+      console.log(response.data);
       return response.data; // Return updated cart data
     } catch (error) {
       return rejectWithValue(error.response.data);
+    } finally {
+      dispatch(setLoader(false));
     }
   }
 );
 
-
 // Clear cart
 export const clearCart = createAsyncThunk(
   "cart/clearCart",
-  async (userId, { rejectWithValue }) => {
-    const token=localStorage.getItem("token");
+  async (userId, { rejectWithValue, dispatch }) => {
+    const token = localStorage.getItem("token");
 
     try {
+      dispatch(setLoader(true));
       const response = await axios.delete(
         `https://ekartback-e2jq.onrender.com/api/cart/clear/${userId}`,
         {
@@ -84,6 +94,8 @@ export const clearCart = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
+    } finally {
+      dispatch(setLoader(false));
     }
   }
 );

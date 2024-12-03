@@ -77,7 +77,7 @@ const CheckOut = () => {
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="w-16 h-16 object-cover rounded"
+                  className="w-16 h-16 object-contain rounded"
                 />
                 <div>
                   <h3 className="text-lg font-semibold">{product.name}</h3>

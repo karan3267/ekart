@@ -1,39 +1,32 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCart } from "../redux/cartSlice";
 import { setIsSideBarOpen } from "../redux/utils";
 import { logout } from "../redux/authSlice";
-import { jwtDecode } from "jwt-decode";
+import { searchProducts } from "../redux/productSlice";
+import { fetchOrders } from "../redux/orderSlice";
 
 const Header = () => {
   const auth = useSelector((state) => state.auth);
-  const utils = useSelector((state) => state.utils);
   const items = useSelector((state) => state.cart.items);
-  const navigate = useNavigate();
+  const orders =useSelector((state)=>state.order.orders);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isTokenExpired } = useSelector((state) => state.utils);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const isOpen = utils.isSideBarOpen;
+  const [searchQuery, setSearchQuery] = useState("");
   const modalRef = useRef();
 
-  const isTokenExpired = () => {
-    const token = localStorage.getItem("token");
-    try {
-      const decoded = jwtDecode(token);
-      const currentTime = Date.now() / 1000;
-      return decoded.exp < currentTime;
-    } catch (error) {
-      console.error("Error decoding token:", error);
-      return true;
-    }
-  };
+  const showSearchBar = ["/products", "/"].includes(location.pathname);
 
   useEffect(() => {
-    if (auth.user && !isTokenExpired()) {
+    if (auth.user && !isTokenExpired) {
       dispatch(fetchCart(auth.user.id));
-    } else if (!auth.user || isTokenExpired()) {
-      localStorage.clear();
+      dispatch(fetchOrders());
+    } else if (!auth.user || isTokenExpired) {
       navigate("/login");
     }
 
@@ -47,22 +40,15 @@ const Header = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [auth.user, dispatch, navigate]);
+  }, [auth.user, dispatch, isTokenExpired, navigate]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    dispatch(searchProducts(searchQuery));
+  };
 
   const handleProfileClick = () => {
     setIsModalOpen(!isModalOpen);
-  };
-
-  const handleCartClick = () => {
-    navigate("/cart");
-  };
-
-  const handleOrdersClick = () => {
-    navigate("/orders");
-  };
-
-  const toggleSidebar = () => {
-    dispatch(setIsSideBarOpen());
   };
 
   const handleSignout = () => {
@@ -73,25 +59,38 @@ const Header = () => {
     <header className="bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 shadow-md text-white">
       {/* Main Header */}
       <div className="p-4 flex items-center justify-between">
-        {/* Logo */}
         <NavLink to="/">
           <img
-            src={"logo2.png"}
+            src="logo2.png"
             alt="eKart Logo"
             className="w-20 h-20 object-cover rounded-full"
           />
         </NavLink>
 
-        {/* Search Bar */}
         <div className="flex items-center gap-4">
-          <input
-            type="text"
-            placeholder="Search products..."
-            className="p-2 rounded-lg w-64 border-none shadow-md focus:outline-none text-gray-700"
-          />
+          {/* Search Bar */}
+          {showSearchBar && (
+            <form
+              onSubmit={handleSearch}
+              className="hidden sm:flex items-center"
+            >
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="p-2 rounded-lg w-64 border-none shadow-md focus:outline-none text-gray-700"
+              />
+              <button
+                type="submit"
+                className="ml-2 bg-white text-blue-500 px-3 py-2 rounded-lg shadow-md hover:bg-gray-100"
+              >
+                Search
+              </button>
+            </form>
+          )}
 
-          {/* Cart Icon */}
-          <button onClick={handleCartClick} className="relative group">
+          <button onClick={() => navigate("/cart")} className="relative group">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -107,27 +106,30 @@ const Header = () => {
               />
             </svg>
             <span className="absolute -top-2 -right-2 bg-red-500 text-xs font-bold text-white w-5 h-5 rounded-full flex items-center justify-center">
-              {items !== null && items !== undefined
-                ? items.reduce((total, item) => total + item.quantity, 0)
-                : 0}
+              {items.reduce((total, item) => total + item.quantity, 0)}
+            </span>
+          </button>
+          <button
+            onClick={() => navigate("/orders")}
+            className="relative group"
+          >
+            <img
+              src={"order.png"}
+              alt="order"
+              className="h-8 w-8 object-contain"
+            />
+            <span className="absolute -top-2 -right-2 bg-red-500 text-xs font-bold text-white w-5 h-5 rounded-full flex items-center justify-center">
+              {orders.length}
             </span>
           </button>
 
-          {/* Orders */}
-          <button
-            onClick={handleOrdersClick}
-            className="hover:underline text-white"
-          >
-            My Orders
-          </button>
-
-          {/* Profile */}
+          {/* Profile Dropdown */}
           <div className="relative">
             <img
-              onClick={handleProfileClick}
-              src={"user.png"}
+              src="user.png"
               alt="User"
               className="w-10 h-10 rounded-full cursor-pointer hover:opacity-80"
+              onClick={handleProfileClick}
             />
             {isModalOpen && (
               <div
@@ -147,6 +149,14 @@ const Header = () => {
                       className="block px-4 py-2 hover:bg-gray-100"
                     >
                       Dashboard
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
+                      to="/orders"
+                      className="block px-4 py-2 hover:bg-gray-100"
+                    >
+                      Orders
                     </NavLink>
                   </li>
                   <li>
@@ -175,9 +185,12 @@ const Header = () => {
       </div>
 
       {/* Sub Header */}
-      <div className="bg-blue-500 py-2 px-4 flex items-center justify-between text-sm">
+      <div className="bg-blue-500 py-2 px-4 flex flex-wrap items-center justify-between text-sm">
         {/* Sidebar Toggle */}
-        <button onClick={toggleSidebar} className="flex items-center">
+        <button
+          onClick={() => dispatch(setIsSideBarOpen())}
+          className="flex items-center text-white mb-2 md:mb-0"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -192,21 +205,33 @@ const Header = () => {
               d="M4 6h16M4 12h16M4 18h16"
             />
           </svg>
-          <span className="ml-2">Menu</span>
+          <span className="ml-2 hidden sm:inline">Menu</span>
         </button>
 
         {/* Navigation Links */}
-        <nav className="flex gap-6">
-          <NavLink to="/products" className="hover:underline">
+        <nav className="flex flex-wrap gap-4 md:gap-6">
+          <NavLink
+            to="/products"
+            className="text-white hover:underline hover:text-gray-200 transition-colors"
+          >
             Products
           </NavLink>
-          <NavLink to="/categories" className="hover:underline">
+          <NavLink
+            to="/categories"
+            className="text-white hover:underline hover:text-gray-200 transition-colors"
+          >
             Categories
           </NavLink>
-          <NavLink to="/about" className="hover:underline">
+          <NavLink
+            to="/about"
+            className="text-white hover:underline hover:text-gray-200 transition-colors"
+          >
             About Us
           </NavLink>
-          <NavLink to="/contact" className="hover:underline">
+          <NavLink
+            to="/contact"
+            className="text-white hover:underline hover:text-gray-200 transition-colors"
+          >
             Contact
           </NavLink>
         </nav>

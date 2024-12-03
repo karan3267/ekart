@@ -10,11 +10,8 @@ const ProductPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const products = useSelector((state) => state.products);
-  const product = products.product;
+  const product = useSelector((state) => state.products.product);
   const categories = useSelector((state) => state.category);
-  const [src,setSrc]=useState(product.images[currentImageIndex]);
-
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
@@ -53,21 +50,20 @@ const ProductPage = () => {
         (prevIndex - 1 + product.images.length) % product.images.length
     );
   };
-  const handleError=()=>{
-     setSrc("default_product.png");
-  }
 
   return (
     <div className="p-6 flex flex-col md:flex-row gap-8">
-      {/* Product Images */}
       <div className="w-full md:w-1/2">
         <div className="relative border rounded-lg shadow-md bg-white">
           <img
-            src={src}
+            src={
+              product.images[currentImageIndex]
+                ? product.images[currentImageIndex]
+                : "default_product.png"
+            }
             alt={product.name}
             className="w-full h-96 object-contain p-4"
             loading="lazy"
-            onError={handleError}
           />
           <button
             onClick={handlePrevImage}
@@ -106,7 +102,9 @@ const ProductPage = () => {
       <div className="w-full md:w-1/2">
         <h1 className="text-3xl font-bold text-gray-800">{product.name}</h1>
         <p className="text-sm text-gray-500 mt-1">Category: {categoryName}</p>
-        <p className="text-xl font-bold text-green-600 mt-4">${product.price}</p>
+        <p className="text-xl font-bold text-green-600 mt-4">
+          ${product.price}
+        </p>
         <p className="mt-4 text-gray-700">{product.description}</p>
         <p className="mt-2 text-gray-600">Ratings: {product.ratings.average}</p>
         <button

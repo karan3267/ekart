@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
 import { useNavigate } from "react-router-dom";
+import SuccessAnimation from "./SuccessAnimation";
 
 const ProductCard = ({ product }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [productAddedToCart, setIsProductAddedToCart] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -18,6 +20,10 @@ const ProductCard = ({ product }) => {
       navigate("/login");
     } else {
       dispatch(addToCart(product));
+      setIsProductAddedToCart(true);
+      setTimeout(() => {
+        setIsProductAddedToCart(false);
+      }, 3000);
     }
   };
 
@@ -36,7 +42,7 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div className="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow ">
+    <div className="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow hover:cursor-pointer">
       <div>
         <div className="relative my-4">
           <img
@@ -132,6 +138,12 @@ const ProductCard = ({ product }) => {
           >
             Add to Cart
           </button>
+          {productAddedToCart && (
+            <SuccessAnimation
+              header={"Success!"}
+              text={`Successfully added ${product.name} to the cart!`}
+            />
+          )}
         </div>
       </div>
     </div>

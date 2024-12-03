@@ -1,24 +1,15 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOrders } from "../redux/orderSlice";
-import Loader from "../components/Loader";
 import "../styles/order.css"
 
 const Orders = () => {
   const dispatch = useDispatch();
-  const { orders, loading, error } = useSelector((state) => state.order);
+  const { orders, error } = useSelector((state) => state.order);
 
   useEffect(() => {
     dispatch(fetchOrders());
   }, [dispatch]);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Loader />
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -35,7 +26,7 @@ const Orders = () => {
       {orders.length === 0 ? (
         <div className="flex flex-col items-center text-gray-500">
           <img
-            src="/images/no-orders.svg" // Replace with your actual illustration
+            src="/images/no-orders.svg"
             alt="No Orders"
             className="w-40 mb-4"
           />

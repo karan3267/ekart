@@ -6,19 +6,41 @@ const router = express.Router();
 
 // Register a new user
 router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, cpassword, address } = req.body;
+
+  // Validate required fields
+  if (!name || !email || !password || !cpassword) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
+
+  // Check if passwords match
+  if (password !== cpassword) {
+    return res.status(400).json({ message: "Passwords do not match." });
+  }
 
   try {
+    // Check for existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Email already registered" });
+      return res.status(400).json({ message: "Email already registered." });
     }
-    const hashedPassword = await bcrypt.hash(password, 10); // Hash password
-    const user = new User({ name, email, password: hashedPassword });
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new user with optional address
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword,
+      address: address || [], // Optional address field
+    });
+
     await user.save();
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: "User registered successfully." });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error("Registration error:", error);
+    res.status(500).json({ message: "Server error.", error });
   }
 });
 
@@ -31,13 +53,28 @@ router.post("/login", async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password); // Compare passwords
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id, isAdmin: user.role }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { id: user._id, isAdmin: user.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "24h",
+      }
+    );
 
-    res.status(200).json({ token, user: { id: user._id, name: user.name, email: user.email ,role:user.role} });
+    res
+      .status(200)
+      .json({
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }

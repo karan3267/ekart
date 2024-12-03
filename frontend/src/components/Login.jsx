@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../redux/authSlice";
 import { useNavigate } from "react-router-dom";
 import { tokenExpired } from "../redux/utils";
+import { setLoader } from "../redux/loadingSlice";
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, loading, error } = useSelector((state) => state.auth);
 
+  useEffect(() => {
+    dispatch(setLoader(loading));
+  }, [dispatch, loading]);
   const [formData, setFormData] = useState({
     email: "",
     password: "",

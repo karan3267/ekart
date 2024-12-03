@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { setLoader } from "./loadingSlice";
 
 // Define initial state
 const initialState = {
@@ -12,14 +13,20 @@ const initialState = {
 // Register user action
 export const registerUser = createAsyncThunk(
   "auth/register",
-  async (userData, { rejectWithValue }) => {
+  async (userData, { rejectWithValue, dispatch }) => {
     try {
-      const response = await axios.post("https://ekartback-e2jq.onrender.com/api/auth/register", userData);
+      dispatch(setLoader(true));
+      const response = await axios.post(
+        "https://ekartback-e2jq.onrender.com/api/auth/register",
+        userData
+      );
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
+    } finally {
+      dispatch(setLoader(false));
     }
   }
 );
@@ -27,14 +34,20 @@ export const registerUser = createAsyncThunk(
 // Login user action
 export const loginUser = createAsyncThunk(
   "auth/login",
-  async (userData, { rejectWithValue }) => {
+  async (userData, { rejectWithValue, dispatch }) => {
     try {
-      const response = await axios.post("https://ekartback-e2jq.onrender.com/api/auth/login", userData);
+      dispatch(setLoader(true));
+      const response = await axios.post(
+        "https://ekartback-e2jq.onrender.com/api/auth/login",
+        userData
+      );
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
+    } finally {
+      dispatch(setLoader(false));
     }
   }
 );

@@ -11,7 +11,7 @@ const Cart = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (auth.user !== null && auth.user !== undefined) {
+    if (auth.user) {
       dispatch(fetchCart(auth.user.id));
     }
   }, [dispatch, auth.user]);
@@ -31,79 +31,97 @@ const Cart = () => {
       {cart.items.length === 0 ? (
         <p className="text-gray-500 text-lg">Your cart is empty.</p>
       ) : (
-        <>
-          {/* Product Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse bg-white shadow-md rounded-lg overflow-hidden">
-              <thead className="bg-blue-500 text-white">
-                <tr>
-                  <th className="px-4 py-2 text-left">Product</th>
-                  <th className="px-4 py-2 text-center">Quantity</th>
-                  <th className="px-4 py-2 text-right">Price</th>
-                  <th className="px-4 py-2 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cart.items.map((item) => (
-                  <tr
-                    key={item._id}
-                    className="border-b hover:bg-gray-100 transition-colors"
-                  >
-                    <td className="px-4 py-3 flex items-center space-x-4">
-                      <img
-                        src={item.image || "placeholder.jpg"}
-                        alt={item.name}
-                        className="w-16 h-16 rounded object-cover"
-                      />
-                      <span className="text-gray-800 font-medium">
-                        {item.name}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">{item.quantity}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-green-600">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Product Overview */}
+          <div className="flex-1 bg-white shadow-md rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              Product Overview
+            </h2>
+            <div className="space-y-6 h-[300px] overflow-auto">
+              {cart.items.map((item) => (
+                <div
+                  key={item._id}
+                  className="flex items-center gap-4 border-b pb-4"
+                >
+                  <img
+                    src={item.image || "placeholder.jpg"}
+                    alt={item.name}
+                    className="w-20 h-20 object-contain rounded-md"
+                  />
+                  <div className="flex-grow">
+                    <h3 className="text-gray-800 font-semibold text-lg">
+                      {item.name}
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      Category: {item.category || "N/A"}
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      Seller: {item.seller || "N/A"}
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      Delivery Estimate: {item.deliveryDate || "5-7 Days"}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-green-600 font-bold text-lg">
                       ${item.price.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => dispatch(removeFromCart(item))}
-                        className="text-red-500 hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </span>
+                    <span className="text-gray-500 text-sm">
+                      Quantity: {item.quantity}
+                    </span>
+                    <button
+                      onClick={() => dispatch(removeFromCart(item))}
+                      className="text-red-500 text-sm hover:underline mt-2"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Cart Summary */}
-          <div className="mt-8 flex flex-col items-center md:items-end">
-            <div className="bg-white shadow-md rounded-lg p-6 w-full md:w-1/3">
-              <h2 className="text-xl font-bold text-gray-800">Cart Summary</h2>
-              <div className="mt-4 flex justify-between items-center">
-                <span className="text-gray-600">Total:</span>
+          {/* Payment Details */}
+          <div className="w-full md:w-1/3 bg-white shadow-md rounded-lg p-6">
+            <h2 className="text-xl font-bold text-gray-800">Payment Details</h2>
+            <div className="mt-4 space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Subtotal:</span>
+                <span className="text-green-600 font-semibold">
+                  ${cart.totalPrice.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Shipping:</span>
+                <span className="text-green-600 font-semibold">Free</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Estimated Tax:</span>
+                <span className="text-green-600 font-semibold">$0.00</span>
+              </div>
+              <div className="border-t pt-4 flex justify-between items-center">
+                <span className="text-lg font-bold text-gray-800">Total:</span>
                 <span className="text-2xl font-bold text-green-600">
                   ${cart.totalPrice.toFixed(2)}
                 </span>
               </div>
-              <div className="mt-6 flex space-x-4">
-                <button
-                  onClick={handleCheckout}
-                  className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg w-full text-center"
-                >
-                  Checkout
-                </button>
-                <button
-                  onClick={() => dispatch(clearCart(auth.user.id))}
-                  className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg w-full text-center"
-                >
-                  Clear Cart
-                </button>
-              </div>
+            </div>
+            <div className="mt-6 flex flex-col space-y-4">
+              <button
+                onClick={handleCheckout}
+                className="bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg text-lg"
+              >
+                Proceed to Checkout
+              </button>
+              <button
+                onClick={() => dispatch(clearCart(auth.user.id))}
+                className="bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg text-lg"
+              >
+                Clear Cart
+              </button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

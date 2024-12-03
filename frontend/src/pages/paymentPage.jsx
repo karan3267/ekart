@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { placeOrder } from "../redux/orderSlice";
 import { clearCart } from "../redux/cartSlice";
 import { setIsPaymentGatewayOpenFalse } from "../redux/utils";
+import SuccessAnimation from "../components/SuccessAnimation";
 
 const detectCardType = (number) => {
   const patterns = {
@@ -19,7 +20,7 @@ const detectCardType = (number) => {
   if (patterns.mastercard.test(number)) return "MasterCard";
   if (patterns.amex.test(number)) return "AmEx";
   if (patterns.discover.test(number)) return "Discover";
-  return "Unknown";
+  return "";
 };
 
 const PaymentPage = () => {
@@ -42,6 +43,37 @@ const PaymentPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const getCardStyle = (type) => {
+    switch (type) {
+      case "Visa":
+        return {
+          background: "linear-gradient(to right, #1a73e8, #4285f4)",
+          icon: "visa.png",
+        };
+      case "MasterCard":
+        return {
+          background: "linear-gradient(to right, #ff6f00, #ff9100)",
+          icon: "mastercard.png",
+        };
+      case "AmEx":
+        return {
+          background: "linear-gradient(to right, #2e8b57, #3cb371)",
+          icon: "amex.png",
+        };
+      case "Discover":
+        return {
+          background: "linear-gradient(to right, #c71585, #ff69b4)",
+          icon: "discover.png",
+        };
+      default:
+        return {
+          background: "linear-gradient(to right, #d3d3d3, #a9a9a9)",
+          icon: "default_card.png",
+        };
+    }
+  };
+
+  const cardStyle = getCardStyle(cardType);
   if (!state?.products || !state?.customer) {
     return (
       <div className="p-6">
@@ -51,7 +83,6 @@ const PaymentPage = () => {
   }
   const handleCardInputChange = (e) => {
     const { name, value, selectionStart } = e.target;
-
     if (name === "cardNumber") {
       const rawValue = value.replace(/\D/g, "");
       const formattedValue =
@@ -178,7 +209,7 @@ const PaymentPage = () => {
                   <polygon points="352,128.4 319.7,96 160,256 160,256 160,256 319.7,416 352,383.6 224.7,256 " />
                 </svg>
                 {!isHovering && (
-                  <div className="p-1 border rounded-full border-2">
+                  <div className="p-1 rounded-full border-2">
                     <svg
                       viewBox="0 0 32 32"
                       xmlns="http://www.w3.org/2000/svg"
@@ -278,56 +309,28 @@ const PaymentPage = () => {
           </div>
           <div className="">
             {paymentMethod === "card" && (
-              <div className="bg-white text-gray-800 p-4 rounded-lg relative mt-24">
+              <div className="bg-white text-gray-800 p-4 rounded-lg mt-24">
                 {/* Virtual Card */}
-                <div className="absolute top-0 right-20 w-64 h-36 bg-gradient-to-r from-blue-700 via-blue-800 to-gray-900 rounded-lg p-4 shadow-lg transform -translate-y-1/2 translate-x-1/2">
-                  <div className="flex justify-between m-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="28"
-                      height="28"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="#ffffff"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                      <rect x="3" y="5" width="18" height="14" rx="3" />
-                      <line x1="3" y1="10" x2="21" y2="10" />
-                      <line x1="7" y1="15" x2="7.01" y2="15" />
-                      <line x1="11" y1="15" x2="13" y2="15" />
-                    </svg>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="28"
-                      height="28"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="#ffffff"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                      <circle cx="9.5" cy="9.5" r="5.5" fill="#fff" />
-                      <circle cx="14.5" cy="14.5" r="5.5" />
-                    </svg>
+                <div
+                  className="relative top-0 right-20 mb-4 w-64 h-36 rounded-lg p-4 shadow-lg"
+                  style={{ background: cardStyle.background }}
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <img
+                      src={cardStyle.icon}
+                      alt={cardType}
+                      className="w-12 h-12 object-contain"
+                    />
+                    <span className="text-sm text-white">{cardType}</span>
                   </div>
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold text-white tracking-widest">
                     {cardDetails.cardNumber || "#### #### #### ####"}
                   </h3>
-                  {cardType !== "Unknown" && (
-                    <p className="text-sm text-gray-200">{cardType}</p>
-                  )}
-                  <div className="flex justify-between">
-                    <p className="text-sm text-gray-200">
-                      {cardDetails.name
-                        ? cardDetails.name.slice(0, 16)
-                        : "Name"}
+                  <div className="flex justify-between mt-2">
+                    <p className="text-sm text-gray-300">
+                      {cardDetails.name || "Name"}
                     </p>
-                    <p className="text-sm text-gray-200">
+                    <p className="text-sm text-gray-300">
                       {cardDetails.expiry || "MM/YY"}
                     </p>
                   </div>
@@ -450,80 +453,10 @@ const PaymentPage = () => {
           </motion.div>
         </motion.div>
         {isSuccess && (
-          <div className="fixed top-0 right-0 bottom-0 left-0 overflow-hidden h-full w-screen flex items-center justify-center bg-gray-800 bg-opacity-40">
-            <motion.div
-              className="flex justify-center items-center h-[200px] w-[300px] bg-green-50 rounded-2xl z-50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1 }}
-            >
-              {/* Animated Wrapper */}
-              <motion.div
-                className="flex flex-col justify-center items-center"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1, ease: "easeOut" }}
-              >
-                {/* Spinner */}
-                <motion.div
-                  className="w-16 h-16 border-4 border-t-green-500 border-green-300 rounded-full mb-20"
-                  initial={{ opacity: 1, rotate: 0 }}
-                  animate={{ opacity: 0, rotate: 360 }}
-                  transition={{
-                    delay: 0,
-                    duration: 1,
-                    ease: "linear",
-                    repeat: Infinity,
-                  }}
-                  exit={{ opacity: 0 }}
-                  style={{ position: "absolute" }}
-                />
-
-                {/* Checkmark */}
-                <motion.div
-                  className="w-16 h-16 flex justify-center items-center rounded-full bg-green-500 mb-20"
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 1.7, duration: 1 }}
-                  style={{ position: "absolute" }}
-                >
-                  <motion.svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    width="32px"
-                    height="32px"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ delay: 2, duration: 1 }}
-                  >
-                    <path d="M20 6L9 17l-5-5" />
-                  </motion.svg>
-                </motion.div>
-
-                {/* Text */}
-                <motion.div
-                  className="mt-24 text-center"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 2, duration: 1 }}
-                >
-                  <h2 className="text-2xl font-bold text-green-700">
-                    Payment Successful!
-                  </h2>
-                  <p className="text-green-600 mt-2">
-                    Your order has been placed successfully.
-                  </p>
-                </motion.div>
-              </motion.div>
-            </motion.div>
-          </div>
+          <SuccessAnimation
+            text={"Your order has been placed successfully."}
+            header={"Payment Successful!"}
+          />
         )}
       </motion.div>
     </div>
