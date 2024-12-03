@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { addToCart } from "../redux/cartSlice";
 import { fetchProduct } from "../redux/productSlice";
 import { fetchCategories } from "../redux/categorySlice";
+import SuccessAnimation from "../components/SuccessAnimation";
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -13,6 +14,7 @@ const ProductPage = () => {
   const product = useSelector((state) => state.products.product);
   const categories = useSelector((state) => state.category);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [productAddedToCart, setIsProductAddedToCart] = useState(false);
 
   useEffect(() => {
     dispatch(fetchProduct(id));
@@ -33,6 +35,10 @@ const ProductPage = () => {
   const handleAddToCart = () => {
     if (localStorage.getItem("token")) {
       dispatch(addToCart(product));
+      setIsProductAddedToCart(true);
+      setTimeout(() => {
+        setIsProductAddedToCart(false);
+      }, 3000);
     } else {
       navigate("/login");
     }
@@ -113,6 +119,12 @@ const ProductPage = () => {
         >
           Add to Cart
         </button>
+        {productAddedToCart && (
+          <SuccessAnimation
+            header={"Success!"}
+            text={`Successfully added ${product.name} to the cart!`}
+          />
+        )}
       </div>
     </div>
   );

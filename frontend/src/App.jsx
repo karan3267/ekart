@@ -26,6 +26,7 @@ import Home from "./pages/Home";
 import { useEffect } from "react";
 import { tokenExpired } from "./redux/utils";
 import Loader from "./components/Loader";
+import OrderDetails from "./pages/OrderDetails";
 
 const AppRoutes = () => {
   const utils = useSelector((state) => state.utils);
@@ -61,6 +62,10 @@ const AppRoutes = () => {
                   <Route
                     path="orders"
                     element={<PrivateRoute element={<Orders />} />}
+                  />
+                  <Route
+                    path="/order/:orderId"
+                    element={<PrivateRoute element={<OrderDetails />} />}
                   />
                   <Route
                     path="cart"

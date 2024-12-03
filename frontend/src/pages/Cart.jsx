@@ -29,7 +29,20 @@ const Cart = () => {
     <div className="p-6 min-h-screen bg-gray-50">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Shopping Cart</h1>
       {cart.items.length === 0 ? (
-        <p className="text-gray-500 text-lg">Your cart is empty.</p>
+        <div className="flex flex-col items-center justify-center h-full">
+          <img
+            src="/images/empty-cart.svg"
+            alt="Empty Cart"
+            className="w-40 mb-4"
+          />
+          <p className="text-gray-600 text-lg">Your cart is currently empty.</p>
+          <button
+            onClick={() => navigate("/products")}
+            className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+          >
+            Shop Now
+          </button>
+        </div>
       ) : (
         <div className="flex flex-col md:flex-row gap-6">
           {/* Product Overview */}
@@ -37,29 +50,32 @@ const Cart = () => {
             <h2 className="text-xl font-bold mb-4 text-gray-800">
               Product Overview
             </h2>
-            <div className="space-y-6 h-[300px] overflow-auto">
+            <div className="space-y-6 h-[400px] overflow-auto">
               {cart.items.map((item) => (
                 <div
                   key={item._id}
-                  className="flex items-center gap-4 border-b pb-4"
+                  className="flex flex-col md:flex-row items-center gap-4 border-b pb-4"
                 >
                   <img
                     src={item.image || "placeholder.jpg"}
                     alt={item.name}
-                    className="w-20 h-20 object-contain rounded-md"
+                    className="w-24 h-24 object-contain rounded-md"
                   />
                   <div className="flex-grow">
                     <h3 className="text-gray-800 font-semibold text-lg">
                       {item.name}
                     </h3>
                     <p className="text-gray-600 text-sm">
-                      Category: {item.category || "N/A"}
+                      <span className="font-semibold">Category:</span>{" "}
+                      {item.category || "N/A"}
                     </p>
                     <p className="text-gray-600 text-sm">
-                      Seller: {item.seller || "N/A"}
+                      <span className="font-semibold">Seller:</span>{" "}
+                      {item.seller || "N/A"}
                     </p>
                     <p className="text-gray-600 text-sm">
-                      Delivery Estimate: {item.deliveryDate || "5-7 Days"}
+                      <span className="font-semibold">Delivery Estimate:</span>{" "}
+                      {item.deliveryDate || "5-7 Days"}
                     </p>
                   </div>
                   <div className="flex flex-col items-end">
@@ -72,6 +88,7 @@ const Cart = () => {
                     <button
                       onClick={() => dispatch(removeFromCart(item))}
                       className="text-red-500 text-sm hover:underline mt-2"
+                      aria-label={`Remove ${item.name} from cart`}
                     >
                       Remove
                     </button>

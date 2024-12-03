@@ -3,7 +3,6 @@ import ProductCard from "../components/ProductCard";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../redux/productSlice";
 import { fetchCategories } from "../redux/categorySlice";
-import { setLoader } from "../redux/loadingSlice";
 
 const PRODUCTS_PER_PAGE = 20;
 
