@@ -39,11 +39,11 @@ const AppRoutes = () => {
   return (
     <Router>
       <div>
-        {/* {loading && (
+        {loading && (
           <div className="fixed bg-gray-600 bg-opacity-60 top-0 left-0 right-0 bottom-0 flex justify-center items-center z-10">
             {<Loader />}
           </div>
-        )} */}
+        )}
         {token && !utils.isTokenExpired ? (
           <div>
             <div className="flex-grow-0">
