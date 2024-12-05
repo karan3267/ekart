@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setCustomer } from "../redux/paymentSlice";
 import { setIsPaymentGatewayOpenTrue } from "../redux/utils";
-import "../styles/checkout.css"; // Add a CSS file for custom styles
+import "../styles/checkout.css"; 
 
 const CheckOut = () => {
   const products = useSelector((state) => state.payment.products);
@@ -65,7 +65,7 @@ const CheckOut = () => {
       <h1 className="text-3xl font-bold text-center mb-6">Checkout</h1>
       <div className="checkout-grid">
         {/* Order Summary */}
-        <div className="order-summary">
+        <div className="order-summary h-[300px] md:h-[540px] overflow-auto">
           <h2 className="text-xl font-bold mb-4">Order Summary</h2>
           <p className="text-lg font-bold mt-4">Total: ${totalPrice}</p>
           <div className="order-items">

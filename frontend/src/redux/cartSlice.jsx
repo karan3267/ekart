@@ -11,7 +11,7 @@ export const fetchCart = createAsyncThunk(
         `https://ekartback-e2jq.onrender.com/api/cart/${userId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // Include token in the Authorization header
+            Authorization: `Bearer ${localStorage.getItem("token")}`, 
           },
         }
       );
@@ -24,32 +24,27 @@ export const fetchCart = createAsyncThunk(
   }
 );
 
-// Add item to the cart
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
-  async (cartItem, { rejectWithValue, dispatch }) => {
+  async (cartItem, { rejectWithValue }) => {
     const token = localStorage.getItem("token");
     try {
-      dispatch(setLoader(true));
       const response = await axios.post(
         "https://ekartback-e2jq.onrender.com/api/cart/",
         cartItem,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Include token in the Authorization header
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      return response.data; // Return updated cart data
+      return response.data; 
     } catch (error) {
       return rejectWithValue(error.response.data);
-    } finally {
-      dispatch(setLoader(false));
     }
   }
 );
 
-// Remove item from the cart
 export const removeFromCart = createAsyncThunk(
   "cart/removeFromCart",
   async (product, { rejectWithValue, dispatch }) => {
@@ -60,12 +55,12 @@ export const removeFromCart = createAsyncThunk(
         `https://ekartback-e2jq.onrender.com/api/cart/${product._id}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Include token in the Authorization header
+            Authorization: `Bearer ${token}`,
           },
         }
       );
       console.log(response.data);
-      return response.data; // Return updated cart data
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
     } finally {
@@ -74,7 +69,6 @@ export const removeFromCart = createAsyncThunk(
   }
 );
 
-// Clear cart
 export const clearCart = createAsyncThunk(
   "cart/clearCart",
   async (userId, { rejectWithValue, dispatch }) => {

@@ -10,17 +10,24 @@ import SuccessAnimation from "../components/SuccessAnimation";
 
 const detectCardType = (number) => {
   const patterns = {
-    visa: /^4/,
-    mastercard: /^5[1-5]/,
-    amex: /^3[47]/,
-    discover: /^6(?:011|5)/,
+    visa: /^4[0-9]{12}(?:[0-9]{3})?$/,
+    mastercard: /^5[1-5][0-9]{14}$/,
+    amex: /^3[47][0-9]{13}$/,
+    discover: /^6(?:011|5[0-9]{2})[0-9]{12}$/,
+    diners: /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/,
+    jcb: /^(?:2131|1800|35\d{3})\d{11}$/,
+    unionpay: /^(62|81)[0-9]{14,17}$/,
+    maestro: /^(5018|5020|5038|5893|6304|6759|676[1-3])[0-9]{8,15}$/,
+    mir: /^220[0-4][0-9]{12}$/,
+    elo: /^((506699|5067[0-9]{2}|509[0-9]{3})|(636368|636297|504175|438935|40117[8-9]|45763[1-2]|457393))[0-9]{10,12}$/,
+    rupay: /^(60|6521|6522)[0-9]{12,15}$/,
   };
-
-  if (patterns.visa.test(number)) return "Visa";
-  if (patterns.mastercard.test(number)) return "MasterCard";
-  if (patterns.amex.test(number)) return "AmEx";
-  if (patterns.discover.test(number)) return "Discover";
-  return "";
+  for (const [key, pattern] of Object.entries(patterns)) {
+    if (pattern.test(number)) {
+      return key.charAt(0).toUpperCase() + key.slice(1);
+    }
+  }
+  return "Unknown";
 };
 
 const PaymentPage = () => {
@@ -44,33 +51,58 @@ const PaymentPage = () => {
   const dispatch = useDispatch();
 
   const getCardStyle = (type) => {
-    switch (type) {
-      case "Visa":
-        return {
-          background: "linear-gradient(to right, #1a73e8, #4285f4)",
-          icon: "visa.png",
-        };
-      case "MasterCard":
-        return {
-          background: "linear-gradient(to right, #ff6f00, #ff9100)",
-          icon: "mastercard.png",
-        };
-      case "AmEx":
-        return {
-          background: "linear-gradient(to right, #2e8b57, #3cb371)",
-          icon: "amex.png",
-        };
-      case "Discover":
-        return {
-          background: "linear-gradient(to right, #c71585, #ff69b4)",
-          icon: "discover.png",
-        };
-      default:
-        return {
-          background: "linear-gradient(to right, #d3d3d3, #a9a9a9)",
-          icon: "default_card.png",
-        };
-    }
+    const styles = {
+      Visa: {
+        background: "linear-gradient(to right, #1a1f71, #004b87)",
+        icon: "icons/visa.png",
+      },
+      Mastercard: {
+        background: "linear-gradient(to right, #eb001b, #f79e1b)",
+        icon: "icons/mastercard.png",
+      },
+      Amex: {
+        background: "linear-gradient(to right, #007bc1, #005587)",
+        icon: "icons/amex.png",
+      },
+      Discover: {
+        background: "linear-gradient(to right, #f76f00, #f9a602)",
+        icon: "icons/discover.png",
+      },
+      Diners: {
+        background: "linear-gradient(to right, #006272, #00b1b7)",
+        icon: "icons/diners.png",
+      },
+      Jcb: {
+        background: "linear-gradient(to right, #003a66, #4a8cca)",
+        icon: "icons/jcb.png",
+      },
+      Unionpay: {
+        background: "linear-gradient(to right, #dc241f, #00a1e9)",
+        icon: "icons/unionpay.png",
+      },
+      Maestro: {
+        background: "linear-gradient(to right, #cc2131, #019fdc)",
+        icon: "icons/maestro.png",
+      },
+      Mir: {
+        background: "linear-gradient(to right, #00794c, #00a550)",
+        icon: "icons/mir.png",
+      },
+      Elo: {
+        background: "linear-gradient(to right, #ffcb05, #000000)",
+        icon: "icons/elo.png",
+      },
+      Rupay: {
+        background: "linear-gradient(to right, #5f259f, #0079c1)", 
+        icon: "icons/rupay.png",
+      },
+      Default: {
+        background: "linear-gradient(to right, #d3d3d3, #a9a9a9)",
+        icon: "icons/default_card.png",
+      },
+    };    
+
+    return styles[type] || styles.Default;
   };
 
   const cardStyle = getCardStyle(cardType);
@@ -82,33 +114,26 @@ const PaymentPage = () => {
     );
   }
   const handleCardInputChange = (e) => {
-    const { name, value, selectionStart } = e.target;
+    const { name, value } = e.target;
+  
     if (name === "cardNumber") {
       const rawValue = value.replace(/\D/g, "");
-      const formattedValue =
-        rawValue
-          .slice(0, 16)
-          .match(/.{1,4}/g)
-          ?.join(" ") || "";
-
-      // Update card type based on raw value
-      setCardType(detectCardType(rawValue));
-
-      // Preserve cursor position
-      const cursorOffset = formattedValue.length - value.length;
-      const newCursorPosition = Math.max(selectionStart + cursorOffset, 0);
-
-      // Update card details and ensure cursor position is correct
-      setCardDetails((prev) => ({ ...prev, cardNumber: formattedValue }));
-
-      // Delay is required to set cursor position after React renders the new state
-      setTimeout(() => {
-        e.target.setSelectionRange(newCursorPosition, newCursorPosition);
-      }, 0);
+  
+      const limitedValue = rawValue.slice(0, 16);
+  
+      const formattedValue = limitedValue.match(/.{1,4}/g)?.join(" ") || "";
+  
+      setCardType(detectCardType(limitedValue));
+  
+      setCardDetails((prev) => ({
+        ...prev,
+        cardNumber: formattedValue,
+      }));
     } else {
-      setCardDetails({ ...cardDetails, [name]: value });
+      setCardDetails((prev) => ({ ...prev, [name]: value }));
     }
   };
+  
 
   const { products, customer } = state;
   const totalPrice = products.reduce(
@@ -173,7 +198,7 @@ const PaymentPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -181,7 +206,7 @@ const PaymentPage = () => {
         className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-20 bg-white rounded-lg shadow-lg p-6 my-6"
       >
         {/* Product Overview */}
-        <div className="overflow-y-auto max-h-[720px]">
+        <div className="h-[400px] md:h-[720px]">
           <motion.div
             className="space-y-4"
             initial={{ x: -50, opacity: 0 }}
@@ -241,28 +266,32 @@ const PaymentPage = () => {
             <p className="text-lg font-bold mt-4 text-gray-800">
               Total: ${totalPrice}
             </p>
-            <div className="space-y-4">
-              {products.map((product) => (
-                <div
-                  key={product._id}
-                  className="flex items-center gap-4 bg-gray-100 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-24 h-24 object-contain rounded-lg"
-                  />
-                  <div>
-                    <h3 className="font-bold text-gray-700">{product.name}</h3>
-                    <p className="text-sm text-gray-500">
-                      Quantity: {product.quantity}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Price: ${product.price}
-                    </p>
+            <div className="h-[300px] md:h-[600px] overflow-y-auto bg-gray-100 px-3 py-4 rounded-lg">
+              <div className="space-y-4">
+                {products.map((product) => (
+                  <div
+                    key={product._id}
+                    className="flex items-center gap-4 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-24 h-24 object-contain rounded-lg"
+                    />
+                    <div>
+                      <h3 className="font-bold text-gray-700">
+                        {product.name}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Quantity: {product.quantity}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Price: ${product.price}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </motion.div>
         </div>
@@ -309,10 +338,10 @@ const PaymentPage = () => {
           </div>
           <div className="">
             {paymentMethod === "card" && (
-              <div className="bg-white text-gray-800 p-4 rounded-lg mt-24">
+              <div className="bg-white text-gray-800 p-4 rounded-lg relative mt-10">
                 {/* Virtual Card */}
                 <div
-                  className="relative top-0 right-20 mb-4 w-64 h-36 rounded-lg p-4 shadow-lg"
+                  className="w-64 h-36 rounded-lg p-4 shadow-lg"
                   style={{ background: cardStyle.background }}
                 >
                   <div className="flex justify-between items-center mb-4">
@@ -321,7 +350,9 @@ const PaymentPage = () => {
                       alt={cardType}
                       className="w-12 h-12 object-contain"
                     />
-                    <span className="text-sm text-white">{cardType}</span>
+                    <span className="text-sm text-white font-medium">
+                      {cardType!=="Unknown"?cardType:""}
+                    </span>
                   </div>
                   <h3 className="text-lg font-bold text-white tracking-widest">
                     {cardDetails.cardNumber || "#### #### #### ####"}
@@ -337,14 +368,17 @@ const PaymentPage = () => {
                 </div>
 
                 {/* Card Input Fields */}
-                <h3 className="text-lg font-bold mb-2">Enter Card Details</h3>
-                <div className="mt-10">
+                <h3 className="text-lg font-bold mb-2 mt-6">
+                  Enter Card Details
+                </h3>
+                <div>
                   <input
                     type="text"
                     name="cardNumber"
                     placeholder="Card Number"
                     value={cardDetails.cardNumber}
                     onChange={handleCardInputChange}
+                    maxLength={19}
                     className="p-3 border rounded-lg w-full mb-4 shadow-sm"
                   />
                   <input
