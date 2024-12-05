@@ -13,7 +13,7 @@ export const placeOrder = createAsyncThunk(
     try {
       dispatch(setLoader(true));
       const response = await axios.post(
-        "http://localhost:5000/api/orders",
+        "https://ekartback-e2jq.onrender.com/api/orders",
         orderData,
         {
           headers: {

@@ -47,6 +47,7 @@ const PaymentPage = () => {
   const { state } = useLocation();
   const [isSuccess, setIsSuccess] = useState(false);
   const userId = useSelector((state) => state.auth.user.id);
+  const [expiryError, setExpiryError] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -116,11 +117,9 @@ const PaymentPage = () => {
   const handleCardInputChange = (e) => {
     const { name, value } = e.target;
     if (name === "expiry") {
-      // Allow only numbers and the "/" character
       const sanitizedValue = value.replace(/[^0-9/]/g, "");
       let formattedValue = sanitizedValue;
 
-      // Format as MM/YY
       if (sanitizedValue.length === 1 && sanitizedValue > 1) {
         formattedValue = `0${sanitizedValue}/`; // Automatically prepend '0' if month > 1
       } else if (sanitizedValue.length === 2 && !sanitizedValue.includes("/")) {
@@ -128,7 +127,7 @@ const PaymentPage = () => {
       } else if (sanitizedValue.length > 5) {
         formattedValue = sanitizedValue.slice(0, 5); // Limit length to MM/YY
       }
-
+      setExpiryError(!validateExpiry(formattedValue));
       setCardDetails((prev) => ({
         ...prev,
         expiry: formattedValue,
@@ -136,7 +135,6 @@ const PaymentPage = () => {
       return;
     }
     if (name === "cvv") {
-      // Limit to numeric input and max length of 3
       const sanitizedValue = value.replace(/\D/g, "").slice(0, 3);
       setCardDetails((prev) => ({
         ...prev,
@@ -432,7 +430,12 @@ const PaymentPage = () => {
                     onChange={handleCardInputChange}
                     className="p-3 border rounded-lg w-full mb-4 shadow-sm"
                   />
-                  <div className="flex space-x-4">
+                  {expiryError && (
+                    <span className="text-red-600">
+                      * please enter valid expiry date
+                    </span>
+                  )}
+                  <div className="flex space-x-4 ">
                     <input
                       type="text"
                       name="expiry"
