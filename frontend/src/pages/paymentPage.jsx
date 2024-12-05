@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import "../styles/payment.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -50,6 +50,11 @@ const PaymentPage = () => {
   const [expiryError, setExpiryError] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const handleClick = () => {
+    navigate("/");
+    dispatch(setIsPaymentGatewayOpenFalse());
+  };
 
   const getCardStyle = (type) => {
     const styles = {
@@ -255,9 +260,9 @@ const PaymentPage = () => {
             transition={{ duration: 0.5 }}
           >
             <div>
-              <a
-                className="flex items-center"
-                href="/cancel"
+              <div
+                className="flex items-center hover:cursor-pointer"
+                onClick={handleClick}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
               >
@@ -301,7 +306,7 @@ const PaymentPage = () => {
                   </div>
                 )}
                 {isHovering && <p>Back</p>}
-              </a>
+              </div>
             </div>
             <h2 className="text-2xl font-bold text-gray-700">Order Summary</h2>
             <p className="text-lg font-bold mt-4 text-gray-800">
