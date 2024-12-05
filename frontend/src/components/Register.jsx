@@ -71,9 +71,9 @@ const Register = () => {
         <div className="text-center mb-8">
           {error && <p className="text-red-500">{error}</p>}
           <img
-            src={"logo.png"}
+            src={"/icons/trolley.png"}
             alt="logo"
-            className="w-40 mb-8 mx-auto block object-cover rounded-full"
+            className="w-40 mb-8 mx-auto block object-cover"
           />
           <h4 className="text-gray-800 text-base font-semibold mt-6">
             Sign up into your account

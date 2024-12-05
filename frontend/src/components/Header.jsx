@@ -61,9 +61,9 @@ const Header = () => {
       <div className="p-4 flex items-center justify-between">
         <NavLink to="/">
           <img
-            src="logo2.png"
+            src="/icons/trolley.png"
             alt="eKart Logo"
-            className="w-20 h-20 object-cover rounded-full"
+            className="w-14 h-14 object-contain"
           />
         </NavLink>
 
