@@ -57,7 +57,7 @@ const PaymentPage = () => {
         icon: "icons/visa.png",
       },
       Mastercard: {
-        background: "linear-gradient(to right, #eb001b, #f79e1b)",
+        background: "linear-gradient(to right, #f79e1b,#eb001b)",
         icon: "icons/mastercard.png",
       },
       Amex: {
@@ -93,14 +93,14 @@ const PaymentPage = () => {
         icon: "icons/elo.png",
       },
       Rupay: {
-        background: "linear-gradient(to right, #5f259f, #0079c1)", 
+        background: "linear-gradient(to right, #0079c1,#5f259f)",
         icon: "icons/rupay.png",
       },
       Default: {
         background: "linear-gradient(to right, #d3d3d3, #a9a9a9)",
         icon: "icons/default_card.png",
       },
-    };    
+    };
 
     return styles[type] || styles.Default;
   };
@@ -115,16 +115,44 @@ const PaymentPage = () => {
   }
   const handleCardInputChange = (e) => {
     const { name, value } = e.target;
-  
+    if (name === "expiry") {
+      // Allow only numbers and the "/" character
+      const sanitizedValue = value.replace(/[^0-9/]/g, "");
+      let formattedValue = sanitizedValue;
+
+      // Format as MM/YY
+      if (sanitizedValue.length === 1 && sanitizedValue > 1) {
+        formattedValue = `0${sanitizedValue}/`; // Automatically prepend '0' if month > 1
+      } else if (sanitizedValue.length === 2 && !sanitizedValue.includes("/")) {
+        formattedValue = `${sanitizedValue}/`; // Add '/' after two digits
+      } else if (sanitizedValue.length > 5) {
+        formattedValue = sanitizedValue.slice(0, 5); // Limit length to MM/YY
+      }
+
+      setCardDetails((prev) => ({
+        ...prev,
+        expiry: formattedValue,
+      }));
+      return;
+    }
+    if (name === "cvv") {
+      // Limit to numeric input and max length of 3
+      const sanitizedValue = value.replace(/\D/g, "").slice(0, 3);
+      setCardDetails((prev) => ({
+        ...prev,
+        cvv: sanitizedValue,
+      }));
+      return;
+    }
     if (name === "cardNumber") {
       const rawValue = value.replace(/\D/g, "");
-  
+
       const limitedValue = rawValue.slice(0, 16);
-  
+
       const formattedValue = limitedValue.match(/.{1,4}/g)?.join(" ") || "";
-  
+
       setCardType(detectCardType(limitedValue));
-  
+
       setCardDetails((prev) => ({
         ...prev,
         cardNumber: formattedValue,
@@ -133,7 +161,22 @@ const PaymentPage = () => {
       setCardDetails((prev) => ({ ...prev, [name]: value }));
     }
   };
-  
+  const validateExpiry = (expiry) => {
+    const [month, year] = expiry.split("/").map(Number);
+
+    if (!month || !year || month < 1 || month > 12) {
+      return false;
+    }
+
+    const currentYear = new Date().getFullYear() % 100; // Get last two digits of current year
+    const currentMonth = new Date().getMonth() + 1;
+
+    if (year < currentYear || (year === currentYear && month < currentMonth)) {
+      return false; // Expiry date is in the past
+    }
+
+    return true;
+  };
 
   const { products, customer } = state;
   const totalPrice = products.reduce(
@@ -151,6 +194,7 @@ const PaymentPage = () => {
       if (
         !cardDetails.cardNumber ||
         !cardDetails.expiry ||
+        !validateExpiry(cardDetails.expiry) ||
         !cardDetails.cvv ||
         !cardDetails.name
       ) {
@@ -164,7 +208,6 @@ const PaymentPage = () => {
       alert("Please select a wallet!");
       return;
     }
-    //todo: processing screen
     setIsSuccess(true);
     //todo: update address
     try {
@@ -341,7 +384,7 @@ const PaymentPage = () => {
               <div className="bg-white text-gray-800 p-4 rounded-lg relative mt-10">
                 {/* Virtual Card */}
                 <div
-                  className="w-64 h-36 rounded-lg p-4 shadow-lg"
+                  className="md:relative top-0 right-20 mb-4 w-64 h-36 rounded-lg p-4 shadow-lg"
                   style={{ background: cardStyle.background }}
                 >
                   <div className="flex justify-between items-center mb-4">
@@ -351,7 +394,7 @@ const PaymentPage = () => {
                       className="w-12 h-12 object-contain"
                     />
                     <span className="text-sm text-white font-medium">
-                      {cardType!=="Unknown"?cardType:""}
+                      {cardType !== "Unknown" ? cardType : ""}
                     </span>
                   </div>
                   <h3 className="text-lg font-bold text-white tracking-widest">
@@ -403,6 +446,7 @@ const PaymentPage = () => {
                       name="cvv"
                       placeholder="CVV"
                       value={cardDetails.cvv}
+                      maxLength={3}
                       onChange={handleCardInputChange}
                       className="p-3 border rounded-lg w-1/2 shadow-sm"
                     />
